@@ -48,7 +48,7 @@ static func load_game(slot: int) -> bool:
 	if err != OK:
 		return false
 
-	var data := json_obj.get_data()
+	var data: Variant = json_obj.get_data()
 	if not data is Dictionary:
 		return false
 
@@ -59,7 +59,7 @@ static func load_game(slot: int) -> bool:
 	Globals.player_lives = data.get("lives", 3)
 	Globals.player_score = data.get("score", 0)
 	Globals.player_keys = data.get("keys", 0)
-	Globals.player_weapon = data.get("weapon", WeaponSystem.WeaponType.PISTOL)
+	Globals.player_weapon = data.get("weapon", Globals.WeaponType.PISTOL)
 	Globals.player_pos = Vector2(
 		data.get("pos_x", 1000.0),
 		data.get("pos_y", 1000.0),
@@ -83,7 +83,7 @@ static func get_slot_info(slot: int) -> Dictionary:
 	if json_obj.parse(json) != OK:
 		return { "empty": true }
 
-	var data := json_obj.get_data()
+	var data: Variant = json_obj.get_data()
 	if not data is Dictionary:
 		return { "empty": true }
 

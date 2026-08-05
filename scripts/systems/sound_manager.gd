@@ -4,24 +4,26 @@ class_name SoundManager
 const SAMPLE_RATE := 22050.0
 
 var _playback: AudioStreamGeneratorPlayback = null
+var _player: AudioStreamPlayer = null
+var _player_ready: bool = false
 var _queue: Array = []
 
 func setup() -> bool:
-	var player := AudioStreamPlayer.new()
-	player.name = "SoundPlayer"
-	player.bus = "Master"
+	_player = AudioStreamPlayer.new()
+	_player.name = "SoundPlayer"
+	_player.bus = "Master"
 
 	var stream := AudioStreamGenerator.new()
 	stream.mix_rate = SAMPLE_RATE
 	stream.buffer_length = 0.1
-	player.stream = stream
+	_player.stream = stream
 
 	var root := Engine.get_main_loop() as SceneTree
 	if root:
-		root.root.add_child(player)
-		player.play()
-		_playback = player.get_stream_playback() as AudioStreamGeneratorPlayback
+		root.root.add_child.call_deferred(_player)
 		return true
+	_player.free()
+	_player = null
 	return false
 
 func play_sound(frequency: float, duration: float, wave_type: int = 0) -> void:
@@ -69,6 +71,17 @@ var _current_phase: float = 0.0
 var _phase: float = 0.0
 
 func process_audio() -> void:
+	if _player == null:
+		return
+
+	if not _player_ready:
+		if _player.is_inside_tree():
+			_player.play()
+			_playback = _player.get_stream_playback() as AudioStreamGeneratorPlayback
+			_player_ready = true
+		else:
+			return
+
 	if _playback == null:
 		return
 

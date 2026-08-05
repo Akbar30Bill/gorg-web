@@ -117,6 +117,10 @@ func _render_title_screen(screen: Image) -> void:
 	var cred_x := (Globals.SCREEN_WIDTH - len(credit) * 6) / 2
 	HUD._draw_text(screen, credit, cred_x, Globals.SCREEN_HEIGHT - 20, Color(0.4, 0.4, 0.5))
 
+	var hint := "PRESS ENTER TO START"
+	var hx := (Globals.SCREEN_WIDTH - len(hint) * 6) / 2
+	HUD._draw_text(screen, hint, hx, Globals.SCREEN_HEIGHT - 34, Color(0.6, 0.6, 0.3))
+
 func _render_heading(screen: Image, text: String) -> void:
 	var x := (Globals.SCREEN_WIDTH - len(text) * 6) / 2
 	HUD._draw_text(screen, text, x, 30, Color(1.0, 0.9, 0.3))

@@ -45,7 +45,7 @@ func _ready() -> void:
 
 	_sound.setup()
 	_load_assets()
-	_menu.enter_state(MenuSystem.MenuState.TITLE)
+	_menu.enter_state(MenuSystem.MenuState.MAIN)
 
 func _load_assets() -> void:
 	_vswap = WADParser.load_vswap("res://assets/wolf3d/VSWAP.WL6")
@@ -81,7 +81,7 @@ func start_new_game() -> void:
 	Globals.player_lives = 3
 	Globals.player_score = 0
 	Globals.player_keys = 0
-	Globals.player_weapon = WeaponSystem.WeaponType.PISTOL
+	Globals.player_weapon = Globals.WeaponType.PISTOL
 	_load_level()
 	_local_game_state = Globals.GameState.PLAYING
 	Globals.game_state = Globals.GameState.PLAYING
@@ -120,11 +120,11 @@ func _spawn_enemies_from_map() -> void:
 	}
 	for y in Globals.MAP_HEIGHT:
 		for x in Globals.MAP_WIDTH:
-			var val := Globals.map_data[y * Globals.MAP_WIDTH + x]
-			var tile := val & 0xFF
-			var et := actor_map.get(tile, -1)
+			var val: int = Globals.map_data[y * Globals.MAP_WIDTH + x]
+			var tile: int = val & 0xFF
+			var et: int = actor_map.get(tile, -1)
 			if et >= 0:
-				var ambush := (val & 0x8000) != 0
+				var ambush: bool = (val & 0x8000) != 0
 				_enemies.spawn(et, (x + 0.5) * Globals.TILE_SIZE, (y + 0.5) * Globals.TILE_SIZE, ambush)
 
 func _process(delta: float) -> void:
@@ -235,13 +235,13 @@ func _handle_game_input(delta: float) -> void:
 	if _just_pressed.get(KEY_SPACE) or _just_pressed.get(KEY_E):
 		_try_open_door()
 	if _just_pressed.get(KEY_1):
-		_weapons.switch_to(WeaponSystem.WeaponType.KNIFE)
+		_weapons.switch_to(Globals.WeaponType.KNIFE)
 	if _just_pressed.get(KEY_2):
-		_weapons.switch_to(WeaponSystem.WeaponType.PISTOL)
+		_weapons.switch_to(Globals.WeaponType.PISTOL)
 	if _just_pressed.get(KEY_3):
-		_weapons.switch_to(WeaponSystem.WeaponType.MACHINE_GUN)
+		_weapons.switch_to(Globals.WeaponType.MACHINE_GUN)
 	if _just_pressed.get(KEY_4):
-		_weapons.switch_to(WeaponSystem.WeaponType.CHAIN_GUN)
+		_weapons.switch_to(Globals.WeaponType.CHAIN_GUN)
 
 	if _keys.get(KEY_CTRL) or _keys.get(MOUSE_BUTTON_LEFT):
 		_weapons.start_fire()
@@ -334,7 +334,7 @@ func _try_fire() -> void:
 		return
 
 	if result.get("hit_radius", 0) > 0:
-		var hit := ProjectileSystem.check_melee_hit(
+		var hit: Variant = ProjectileSystem.check_melee_hit(
 			Globals.player_pos, Globals.player_angle,
 			_enemies.get_enemies(), result["hit_radius"], result["damage"]
 		)

@@ -40,8 +40,8 @@ func try_pickup(tile_value: int) -> Dictionary:
 	return { "collected": false }
 
 func _collect(pickup_type: PickupType) -> Dictionary:
-	var def := PICKUP_DEFS.get(pickup_type, {})
-	var amount := def.get("amount", 0)
+	var def: Dictionary = PICKUP_DEFS.get(pickup_type, {})
+	var amount: int = def.get("amount", 0)
 
 	match pickup_type:
 		PickupType.HEALTH:
@@ -55,9 +55,9 @@ func _collect(pickup_type: PickupType) -> Dictionary:
 		PickupType.CROSS, PickupType.CHALICE, PickupType.CHEST, PickupType.CROWN, PickupType.GIB_POINTS:
 			Globals.player_score += amount
 		PickupType.MACHINE_GUN:
-			Globals.player_weapon = WeaponSystem.WeaponType.MACHINE_GUN
+			Globals.player_weapon = Globals.WeaponType.MACHINE_GUN
 		PickupType.CHAIN_GUN:
-			Globals.player_weapon = WeaponSystem.WeaponType.CHAIN_GUN
+			Globals.player_weapon = Globals.WeaponType.CHAIN_GUN
 		PickupType.ONE_UP:
 			Globals.player_lives += 1
 

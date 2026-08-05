@@ -33,12 +33,12 @@ static func check_melee_hit(player_pos: Vector2, player_angle: float, enemies: A
 	for e in enemies:
 		if not e.alive:
 			continue
-		var to_enemy := e.world_pos - player_pos
-		var dist := to_enemy.length()
+		var to_enemy: Vector2 = e.world_pos - player_pos
+		var dist: float = to_enemy.length()
 		if dist > range:
 			continue
 		to_enemy = to_enemy.normalized()
-		var dot := to_enemy.dot(dir)
+		var dot: float = to_enemy.dot(dir)
 		if dot > 0.5:
 			return e
 	return null

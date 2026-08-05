@@ -17,19 +17,19 @@ static func render(screen: Image) -> void:
 	# Weapon indicator
 	var weapon_name := "Pistol"
 	match Globals.player_weapon:
-		WeaponSystem.WeaponType.KNIFE:
+		Globals.WeaponType.KNIFE:
 			weapon_name = "Knife"
-		WeaponSystem.WeaponType.MACHINE_GUN:
+		Globals.WeaponType.MACHINE_GUN:
 			weapon_name = "MG"
-		WeaponSystem.WeaponType.CHAIN_GUN:
+		Globals.WeaponType.CHAIN_GUN:
 			weapon_name = "Chain"
 	_draw_text(screen, weapon_name, Globals.SCREEN_WIDTH - 60, status_y + 4, Color(1.0, 1.0, 1.0))
 
 	# Health bar
 	var bar_x := 4
-	var bar_y := status_y + 34
+	var bar_y := status_y + 30
 	var bar_w := 100
-	var bar_h := 6
+	var bar_h := 4
 	for x in range(bar_x, bar_x + bar_w):
 		for y in range(bar_y, bar_y + bar_h):
 			screen.set_pixel(x, y, Color(0.15, 0.15, 0.15))
@@ -108,13 +108,13 @@ const CHAR_MAP := {
 static func _draw_text(screen: Image, text: String, x: int, y: int, color: Color) -> void:
 	var cx := x
 	for ch in text.to_upper():
-		var glyph := CHAR_MAP.get(ch, [0])
+		var glyph: Array = CHAR_MAP.get(ch, [0])
 		for row in glyph.size():
-			var bits := glyph[row]
+			var bits: int = glyph[row]
 			for col in 5:
 				if bits & (1 << (4 - col)):
-					var px := cx + col
-					var py := y + row
+					var px: int = cx + col
+					var py: int = y + row
 					if px >= 0 and px < Globals.SCREEN_WIDTH and py >= 0 and py < Globals.SCREEN_HEIGHT:
 						screen.set_pixel(px, py, color)
 		cx += 6

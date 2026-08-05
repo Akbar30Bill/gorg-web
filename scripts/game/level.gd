@@ -146,8 +146,8 @@ func push_wall(x: int, y: int, dir: int) -> bool:
 func _scan_map_for_features() -> void:
 	for y in Globals.MAP_HEIGHT:
 		for x in Globals.MAP_WIDTH:
-			var val := _map[y * Globals.MAP_WIDTH + x]
-			var tile := val & 0xFF
+			var val: int = _map[y * Globals.MAP_WIDTH + x]
+			var tile: int = val & 0xFF
 
 			if tile >= DOOR_TILE_START and tile <= DOOR_TILE_END:
 				var d := DoorData.new()
