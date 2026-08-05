@@ -258,13 +258,18 @@ func _move_player(speed: float) -> void:
 	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
 	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
 
-	if not _level.is_wall(tx, py):
-		Globals.player_pos.x = nx
-	if not _level.is_wall(px, ty):
-		Globals.player_pos.y = ny
+	var blocked_x := _level.is_wall(tx, py)
+	var blocked_y := _level.is_wall(px, ty)
 
-	_check_pushwall(tx, py)
-	_check_pushwall(px, ty)
+	if blocked_x:
+		_try_pushwall(tx, py, nx > Globals.player_pos.x)
+	if blocked_y:
+		_try_pushwall(px, ty, ny > Globals.player_pos.y)
+
+	if not blocked_x:
+		Globals.player_pos.x = nx
+	if not blocked_y:
+		Globals.player_pos.y = ny
 
 func _strafe_player(speed: float) -> void:
 	var sa := Globals.player_angle + deg_to_rad(90.0)
@@ -275,16 +280,33 @@ func _strafe_player(speed: float) -> void:
 	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
 	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
 
-	if not _level.is_wall(tx, py):
+	var blocked_x := _level.is_wall(tx, py)
+	var blocked_y := _level.is_wall(px, ty)
+
+	if blocked_x:
+		_try_pushwall(tx, py, nx > Globals.player_pos.x)
+	if blocked_y:
+		_try_pushwall(px, ty, ny > Globals.player_pos.y)
+
+	if not blocked_x:
 		Globals.player_pos.x = nx
-	if not _level.is_wall(px, ty):
+	if not blocked_y:
 		Globals.player_pos.y = ny
 
-func _check_pushwall(tx: int, ty: int) -> void:
+func _try_pushwall(tx: int, ty: int, pushing_right: bool) -> void:
 	var tile := _level.get_tile(tx, ty)
-	if tile >= 64 and tile <= 67:
-		var dir := tile - 64
-		_level.push_wall(tx, ty, dir)
+	if tile < 64 or tile > 67:
+		return
+	var dir := tile - 64
+	var dir_map := { 0: 1, 1: 2, 2: 3, 3: 0 }
+	var needed_dir: int
+	if pushing_right:
+		needed_dir = 1
+	else:
+		needed_dir = 3
+	if dir_map[dir] == needed_dir or dir_map[needed_dir] == dir:
+		pass
+	if _level.push_wall(tx, ty, dir):
 		_sound.play_secret()
 
 func _try_open_door() -> void:

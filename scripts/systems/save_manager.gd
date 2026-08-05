@@ -8,7 +8,7 @@ static func save_exists(slot: int) -> bool:
 	return FileAccess.file_exists(SAVE_DIR + "save_" + str(slot) + ".json")
 
 static func save_game(slot: int) -> bool:
-	DirAccess.make_dir_recursive_absolute(SAVE_DIR.replace("user://", OS.get_user_data_dir() + "/"))
+	DirAccess.make_dir_recursive_absolute("user://saves")
 
 	var data := {
 		"level": Globals.current_level,

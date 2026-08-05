@@ -48,7 +48,7 @@ func is_wall(x: int, y: int) -> bool:
 	var tile := get_tile(x, y)
 	if tile == 0:
 		return false
-	if tile >= 1 and tile < 64:
+	if tile >= 1 and tile <= 67:
 		return true
 	if tile >= DOOR_TILE_START and tile <= DOOR_TILE_END:
 		return true
