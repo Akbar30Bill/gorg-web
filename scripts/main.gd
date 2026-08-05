@@ -5,6 +5,9 @@ var _weapons: WeaponSystem = null
 var _enemies: EnemySystem = null
 var _sprite_renderer: SpriteRenderer = null
 var _pickups: PickupSystem = null
+var _menu: MenuSystem = null
+var _intermission: Intermission = null
+var _sound: SoundManager = null
 var _vswap: WADParser.VSwapFile = null
 var _gamemaps: WADParser.GameMapsFile = null
 
@@ -12,6 +15,9 @@ var _keys: Dictionary = {}
 var _mouse_captured: bool = false
 var _mouse_delta: float = 0.0
 var _just_pressed: Dictionary = {}
+var _local_game_state: int = Globals.GameState.TITLE
+var _enemy_attack_timer: float = 0.0
+var _death_timer: float = 0.0
 
 func _ready() -> void:
 	Globals.screen_image = Image.create(Globals.SCREEN_WIDTH, Globals.SCREEN_HEIGHT, false, Image.FORMAT_RGBA8)
@@ -33,9 +39,13 @@ func _ready() -> void:
 	_enemies = EnemySystem.new()
 	_sprite_renderer = SpriteRenderer.new()
 	_pickups = PickupSystem.new()
+	_menu = MenuSystem.new()
+	_intermission = Intermission.new()
+	_sound = SoundManager.new()
 
+	_sound.setup()
 	_load_assets()
-	_init_game()
+	_menu.enter_state(MenuSystem.MenuState.TITLE)
 
 func _load_assets() -> void:
 	_vswap = WADParser.load_vswap("res://assets/wolf3d/VSWAP.WL6")
@@ -43,14 +53,10 @@ func _load_assets() -> void:
 		var num_walls := mini(_vswap.sprite_start, Globals.NUM_WALL_TEXTURES)
 		for i in num_walls:
 			Globals.wall_textures.append(_vswap.load_wall_texture(i))
-		for i in range(_vswap.sprite_start, _vswap.offsets.size()):
-			var si := i - _vswap.sprite_start
-			if si >= 50:
-				break
-			var img := _vswap.load_sprite(si)
+		for i in range(_vswap.sprite_start, mini(_vswap.sprite_start + 50, _vswap.offsets.size())):
+			var img := _vswap.load_sprite(i - _vswap.sprite_start)
 			if img:
 				Globals.sprite_images.append(img)
-
 	if Globals.wall_textures.is_empty():
 		_generate_placeholder_textures()
 
@@ -65,11 +71,23 @@ func _generate_placeholder_textures() -> void:
 				var r := float(x) / Globals.TILE_SIZE
 				var g := float(y) / Globals.TILE_SIZE
 				var b := float((x ^ y) & 0x3F) / 64.0
-				var shade := 0.7 + 0.3 * sin((x + y) * 0.1 + i)
-				img.set_pixel(x, y, Color(r * shade, g * shade, b * shade))
+				img.set_pixel(x, y, Color(r * (0.7 + 0.3 * sin((x + y) * 0.1 + i)), g * (0.7 + 0.3 * sin((x + y) * 0.13 + i)), b * (0.7 + 0.3 * sin((x + y) * 0.17 + i))))
 		Globals.wall_textures.append(img)
 
-func _init_game() -> void:
+func start_new_game() -> void:
+	Globals.current_level = 0
+	Globals.player_health = 100
+	Globals.player_ammo = 8
+	Globals.player_lives = 3
+	Globals.player_score = 0
+	Globals.player_keys = 0
+	Globals.player_weapon = WeaponSystem.WeaponType.PISTOL
+	_load_level()
+	_local_game_state = Globals.GameState.PLAYING
+	Globals.game_state = Globals.GameState.PLAYING
+
+func _load_level() -> void:
+	_enemies.clear()
 	var raw_map: Array
 	if _gamemaps:
 		raw_map = _gamemaps.load_map(Globals.current_level)
@@ -78,41 +96,28 @@ func _init_game() -> void:
 
 	_level.load_from_gamemaps(raw_map)
 	Globals.map_data = raw_map
-
 	_spawn_player()
 	_spawn_enemies_from_map()
-	Globals.game_state = Globals.GameState.PLAYING
 
 func _spawn_player() -> void:
 	for y in Globals.MAP_HEIGHT:
 		for x in Globals.MAP_WIDTH:
-			var tile := _level.get_tile(x, y)
-			if tile == 0:
-				Globals.player_pos = Vector2(
-					(x + 0.5) * Globals.TILE_SIZE,
-					(y + 0.5) * Globals.TILE_SIZE,
-				)
+			if _level.get_tile(x, y) == 0:
+				Globals.player_pos = Vector2((x + 0.5) * Globals.TILE_SIZE, (y + 0.5) * Globals.TILE_SIZE)
 				Globals.player_angle = 0.0
 				return
 	Globals.player_pos = Vector2(1000, 1000)
 	Globals.player_angle = 0.0
 
 func _spawn_enemies_from_map() -> void:
-	_enemies.clear()
 	var actor_map := {
-		108: EnemySystem.EnemyType.GUARD,
-		116: EnemySystem.EnemyType.GUARD,
-		110: EnemySystem.EnemyType.SS,
-		118: EnemySystem.EnemyType.SS,
-		112: EnemySystem.EnemyType.OFFICER,
-		120: EnemySystem.EnemyType.OFFICER,
-		114: EnemySystem.EnemyType.MUTANT,
-		122: EnemySystem.EnemyType.MUTANT,
-		138: EnemySystem.EnemyType.DOG,
-		140: EnemySystem.EnemyType.DOG,
+		108: EnemySystem.EnemyType.GUARD, 116: EnemySystem.EnemyType.GUARD,
+		110: EnemySystem.EnemyType.SS, 118: EnemySystem.EnemyType.SS,
+		112: EnemySystem.EnemyType.OFFICER, 120: EnemySystem.EnemyType.OFFICER,
+		114: EnemySystem.EnemyType.MUTANT, 122: EnemySystem.EnemyType.MUTANT,
+		138: EnemySystem.EnemyType.DOG, 140: EnemySystem.EnemyType.DOG,
 		142: EnemySystem.EnemyType.HANS,
 	}
-
 	for y in Globals.MAP_HEIGHT:
 		for x in Globals.MAP_WIDTH:
 			var val := Globals.map_data[y * Globals.MAP_WIDTH + x]
@@ -120,15 +125,51 @@ func _spawn_enemies_from_map() -> void:
 			var et := actor_map.get(tile, -1)
 			if et >= 0:
 				var ambush := (val & 0x8000) != 0
-				var wx := (x + 0.5) * Globals.TILE_SIZE
-				var wy := (y + 0.5) * Globals.TILE_SIZE
-				_enemies.spawn(et, wx, wy, ambush)
+				_enemies.spawn(et, (x + 0.5) * Globals.TILE_SIZE, (y + 0.5) * Globals.TILE_SIZE, ambush)
 
 func _process(delta: float) -> void:
-	if Globals.game_state != Globals.GameState.PLAYING:
-		return
+	_sound.process_audio()
 
-	_handle_input(delta)
+	match _local_game_state:
+		Globals.GameState.TITLE:
+			_process_title(delta)
+		Globals.GameState.PLAYING:
+			_process_playing(delta)
+		Globals.GameState.DEAD:
+			_process_dead(delta)
+		Globals.GameState.INTERMISSION:
+			_process_intermission(delta)
+
+func _process_title(delta: float) -> void:
+	_menu.update(delta)
+
+	if _just_pressed.get(KEY_UP) or _just_pressed.get(KEY_W):
+		_menu.move_up()
+	if _just_pressed.get(KEY_DOWN) or _just_pressed.get(KEY_S):
+		_menu.move_down()
+	if _just_pressed.get(KEY_ENTER) or _just_pressed.get(KEY_SPACE):
+		var result := _menu.confirm_action()
+		match result.get("action", ""):
+			"new_game":
+				start_new_game()
+			"load":
+				if SaveManager.load_game(result.get("slot", 0)):
+					_load_level()
+					_local_game_state = Globals.GameState.PLAYING
+					Globals.game_state = Globals.GameState.PLAYING
+			"quit":
+				get_tree().quit()
+	if _just_pressed.get(KEY_ESCAPE):
+		if _menu.state == MenuSystem.MenuState.LOAD_GAME or _menu.state == MenuSystem.MenuState.CONTROLS:
+			_menu.enter_state(MenuSystem.MenuState.MAIN)
+		elif _menu.state == MenuSystem.MenuState.TITLE:
+			_menu.enter_state(MenuSystem.MenuState.MAIN)
+
+	_just_pressed.clear()
+	_render_menu()
+
+func _process_playing(delta: float) -> void:
+	_handle_game_input(delta)
 	_weapons.update(delta)
 	_level.update_doors(delta)
 	_enemies.update_all(delta, _level)
@@ -138,28 +179,40 @@ func _process(delta: float) -> void:
 
 	_enemy_attack_check(delta)
 	_check_pickups()
-	_render_frame()
+	_check_elevator()
+	_process_weapon_sound(delta)
+	_render_game_frame()
 
-var _enemy_attack_timer: float = 0.0
-
-func _enemy_attack_check(delta: float) -> void:
-	_enemy_attack_timer -= delta
-	if _enemy_attack_timer > 0:
+func _process_dead(delta: float) -> void:
+	_death_timer += delta
+	if _death_timer > 3.0 and (_just_pressed.get(KEY_ENTER) or _just_pressed.get(KEY_SPACE)):
+		_just_pressed.clear()
+		if Globals.player_lives > 1:
+			Globals.player_lives -= 1
+			Globals.player_health = 100
+			_load_level()
+			_local_game_state = Globals.GameState.PLAYING
+			Globals.game_state = Globals.GameState.PLAYING
+			_death_timer = 0.0
+		else:
+			_menu.enter_state(MenuSystem.MenuState.MAIN)
+			_local_game_state = Globals.GameState.TITLE
+			Globals.game_state = Globals.GameState.TITLE
 		return
-	_enemy_attack_timer = 0.3
 
-	for e in _enemies.get_enemies():
-		if not e.alive or e.state != EnemySystem.EnemyState.ATTACK:
-			continue
-		var dist := e.world_pos.distance_to(Globals.player_pos)
-		if dist < e.attack_range:
-			Globals.player_health -= int(e.damage)
-			if Globals.player_health <= 0:
-				Globals.player_health = 0
-				Globals.game_state = Globals.GameState.DEAD
-			return
+	_just_pressed.clear()
+	var screen := Globals.screen_image
+	screen.fill(Color(0.6, 0.1, 0.1))
+	HUD._draw_text(screen, "YOU DIED", (Globals.SCREEN_WIDTH - 48) / 2, 80, Color(1.0, 1.0, 1.0))
+	if _death_timer > 3.0:
+		var hint := "PRESS ENTER TO CONTINUE"
+		HUD._draw_text(screen, hint, (Globals.SCREEN_WIDTH - len(hint) * 6) / 2, 120, Color(0.8, 0.6, 0.6))
+	Globals.screen_texture.update(screen)
 
-func _handle_input(delta: float) -> void:
+func _process_weapon_sound(_delta: float) -> void:
+	pass
+
+func _handle_game_input(delta: float) -> void:
 	var move_speed := Globals.PLAYER_SPEED * delta
 	var rot_speed := deg_to_rad(Globals.ROTATION_SPEED * delta)
 
@@ -167,24 +220,20 @@ func _handle_input(delta: float) -> void:
 		_move_player(move_speed)
 	if _keys.get(KEY_S) or _keys.get(KEY_DOWN):
 		_move_player(-move_speed)
-
 	if _keys.get(KEY_A):
 		_strafe_player(-move_speed)
 	if _keys.get(KEY_D):
 		_strafe_player(move_speed)
-
 	if _keys.get(KEY_LEFT):
 		Globals.player_angle -= rot_speed
 	if _keys.get(KEY_RIGHT):
 		Globals.player_angle += rot_speed
-
 	if _mouse_captured and abs(_mouse_delta) > 0.001:
 		Globals.player_angle += _mouse_delta * Globals.MOUSE_SENSITIVITY
 		_mouse_delta = 0.0
 
 	if _just_pressed.get(KEY_SPACE) or _just_pressed.get(KEY_E):
 		_try_open_door()
-
 	if _just_pressed.get(KEY_1):
 		_weapons.switch_to(WeaponSystem.WeaponType.KNIFE)
 	if _just_pressed.get(KEY_2):
@@ -202,45 +251,59 @@ func _handle_input(delta: float) -> void:
 	_just_pressed.clear()
 
 func _move_player(speed: float) -> void:
-	var new_x := Globals.player_pos.x + cos(Globals.player_angle) * speed
-	var new_y := Globals.player_pos.y + sin(Globals.player_angle) * speed
+	var nx := Globals.player_pos.x + cos(Globals.player_angle) * speed
+	var ny := Globals.player_pos.y + sin(Globals.player_angle) * speed
+	var tx := int(nx / Globals.TILE_SIZE)
+	var ty := int(ny / Globals.TILE_SIZE)
+	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
+	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
 
-	if not _level.is_wall(int(new_x / Globals.TILE_SIZE), int(Globals.player_pos.y / Globals.TILE_SIZE)):
-		Globals.player_pos.x = new_x
-	if not _level.is_wall(int(Globals.player_pos.x / Globals.TILE_SIZE), int(new_y / Globals.TILE_SIZE)):
-		Globals.player_pos.y = new_y
+	if not _level.is_wall(tx, py):
+		Globals.player_pos.x = nx
+	if not _level.is_wall(px, ty):
+		Globals.player_pos.y = ny
+
+	_check_pushwall(tx, py)
+	_check_pushwall(px, ty)
 
 func _strafe_player(speed: float) -> void:
-	var strafe_angle := Globals.player_angle + deg_to_rad(90.0)
-	var new_x := Globals.player_pos.x + cos(strafe_angle) * speed
-	var new_y := Globals.player_pos.y + sin(strafe_angle) * speed
+	var sa := Globals.player_angle + deg_to_rad(90.0)
+	var nx := Globals.player_pos.x + cos(sa) * speed
+	var ny := Globals.player_pos.y + sin(sa) * speed
+	var tx := int(nx / Globals.TILE_SIZE)
+	var ty := int(ny / Globals.TILE_SIZE)
+	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
+	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
 
-	if not _level.is_wall(int(new_x / Globals.TILE_SIZE), int(Globals.player_pos.y / Globals.TILE_SIZE)):
-		Globals.player_pos.x = new_x
-	if not _level.is_wall(int(Globals.player_pos.x / Globals.TILE_SIZE), int(new_y / Globals.TILE_SIZE)):
-		Globals.player_pos.y = new_y
+	if not _level.is_wall(tx, py):
+		Globals.player_pos.x = nx
+	if not _level.is_wall(px, ty):
+		Globals.player_pos.y = ny
+
+func _check_pushwall(tx: int, ty: int) -> void:
+	var tile := _level.get_tile(tx, ty)
+	if tile >= 64 and tile <= 67:
+		var dir := tile - 64
+		_level.push_wall(tx, ty, dir)
+		_sound.play_secret()
 
 func _try_open_door() -> void:
 	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
 	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
-	var check_positions := [
-		Vector2i(px + 1, py),
-		Vector2i(px - 1, py),
-		Vector2i(px, py + 1),
-		Vector2i(px, py - 1),
-	]
-
-	for cp in check_positions:
+	for cp in [Vector2i(px + 1, py), Vector2i(px - 1, py), Vector2i(px, py + 1), Vector2i(px, py - 1)]:
 		if _level.is_door(cp.x, cp.y):
 			var door := _level.get_door_at(cp.x, cp.y)
 			if door and door.state == 0:
+				var can_open := true
 				if door.locked:
-					var needed_key := 1 if door.key_required == 1 else 2
-					if Globals.player_keys & needed_key:
+					var needed := 1 if door.key_required == 1 else 2
+					if Globals.player_keys & needed:
 						door.locked = false
-						_level.trigger_door(cp.x, cp.y)
-				else:
+					else:
+						can_open = false
+				if can_open:
 					_level.trigger_door(cp.x, cp.y)
+					_sound.play_door_open()
 				break
 
 func _try_fire() -> void:
@@ -254,38 +317,90 @@ func _try_fire() -> void:
 			_enemies.get_enemies(), result["hit_radius"], result["damage"]
 		)
 		if hit:
-			_enemies.damage_enemy(hit, result["damage"])
+			if _enemies.damage_enemy(hit, result["damage"]):
+				_sound.play_enemy_death()
+			else:
+				_sound.play_enemy_hurt()
 	else:
-		var hit_result := ProjectileSystem.fire_hitscan(
-			Globals.player_pos, Globals.player_angle, 1000.0, _level
-		)
-		var hit_enemy: bool = false
+		_sound.play_pistol()
+		var hr := ProjectileSystem.fire_hitscan(Globals.player_pos, Globals.player_angle, 1000.0, _level)
 		for e in _enemies.get_enemies():
 			if not e.alive:
 				continue
-			var to_enemy := e.world_pos - Globals.player_pos
-			if to_enemy.length() > 1000.0:
+			var to_e := e.world_pos - Globals.player_pos
+			if to_e.length() > 1000.0:
 				continue
-			var angle_to_enemy := atan2(to_enemy.y, to_enemy.x)
-			var angle_diff := wrapf(angle_to_enemy - Globals.player_angle, -PI, PI)
-			if abs(angle_diff) < deg_to_rad(8.0):
-				var dist := to_enemy.length()
-				if not hit_result["hit"] or dist < Globals.player_pos.distance_to(hit_result["position"]):
-					_enemies.damage_enemy(e, result["damage"])
-					hit_enemy = true
+			var ad := wrapf(atan2(to_e.y, to_e.x) - Globals.player_angle, -PI, PI)
+			if abs(ad) < deg_to_rad(8.0):
+				var dist := to_e.length()
+				if not hr["hit"] or dist < Globals.player_pos.distance_to(hr["position"]):
+					if _enemies.damage_enemy(e, result["damage"]):
+						_sound.play_enemy_death()
+					else:
+						_sound.play_enemy_hurt()
 					break
 
 func _check_pickups() -> void:
 	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
 	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
 	var tile := _level.get_tile(px, py)
-
 	if tile >= 126 and tile <= 137:
-		var result := _pickups.try_pickup(tile)
-		if result["collected"]:
+		var p_result := _pickups.try_pickup(tile)
+		if p_result["collected"]:
 			Globals.map_data[py * Globals.MAP_WIDTH + px] = 0
+			_sound.play_pickup()
 
-func _render_frame() -> void:
+func _check_elevator() -> void:
+	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
+	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
+	var tile := _level.get_tile(px, py)
+	if tile == 0x15:
+		var alive_count := 0
+		for e in _enemies.get_enemies():
+			if e.alive:
+				alive_count += 1
+		if alive_count == 0:
+			_local_game_state = Globals.GameState.INTERMISSION
+			Globals.game_state = Globals.GameState.INTERMISSION
+			_intermission.start()
+
+func _process_intermission(delta: float) -> void:
+	_intermission.update(delta)
+	if _just_pressed.get(KEY_ENTER) or _just_pressed.get(KEY_SPACE):
+		if _intermission.can_continue():
+			Globals.current_level += 1
+			if Globals.current_level >= 10:
+				_menu.enter_state(MenuSystem.MenuState.MAIN)
+				_local_game_state = Globals.GameState.TITLE
+				Globals.game_state = Globals.GameState.TITLE
+			else:
+				_load_level()
+				_local_game_state = Globals.GameState.PLAYING
+				Globals.game_state = Globals.GameState.PLAYING
+	_just_pressed.clear()
+	_intermission.render(Globals.screen_image)
+	Globals.screen_texture.update(Globals.screen_image)
+
+func _enemy_attack_check(delta: float) -> void:
+	_enemy_attack_timer -= delta
+	if _enemy_attack_timer > 0:
+		return
+	_enemy_attack_timer = 0.3
+
+	for e in _enemies.get_enemies():
+		if not e.alive or e.state != EnemySystem.EnemyState.ATTACK:
+			continue
+		if e.world_pos.distance_to(Globals.player_pos) < e.attack_range:
+			Globals.player_health -= int(e.damage)
+			_sound.play_player_hurt()
+			if Globals.player_health <= 0:
+				Globals.player_health = 0
+				_local_game_state = Globals.GameState.DEAD
+				Globals.game_state = Globals.GameState.DEAD
+				_death_timer = 0.0
+			return
+
+func _render_game_frame() -> void:
 	var screen := Globals.screen_image
 	screen.fill(Color(0.18, 0.18, 0.22))
 
@@ -299,24 +414,22 @@ func _render_frame() -> void:
 		Globals.wall_textures, Globals.player_pos, Globals.player_angle
 	)
 
-	var sprites: Array = []
+	_sprite_renderer.clear()
 	for e in _enemies.get_enemies():
 		if e.alive and e.sprite_index < Globals.sprite_images.size():
-			sprites.append(Globals.sprite_images[e.sprite_index])
 			_sprite_renderer.add_sprite(
 				Globals.sprite_images[e.sprite_index],
 				e.world_pos.x, e.world_pos.y
 			)
 
-	_sprite_renderer.render(
-		screen, Globals.z_buffer,
-		Globals.player_pos, Globals.player_angle
-	)
-	_sprite_renderer.clear()
+	_sprite_renderer.render(screen, Globals.z_buffer, Globals.player_pos, Globals.player_angle)
 
 	HUD.render(screen)
-
 	Globals.screen_texture.update(screen)
+
+func _render_menu() -> void:
+	_menu.render(Globals.screen_image)
+	Globals.screen_texture.update(Globals.screen_image)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
@@ -325,17 +438,15 @@ func _input(event: InputEvent) -> void:
 		_keys[event.keycode] = event.pressed
 
 		if event.keycode == KEY_ESCAPE and event.pressed:
-			if _mouse_captured:
-				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-				_mouse_captured = false
-			else:
-				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-				_mouse_captured = true
+			if _local_game_state == Globals.GameState.PLAYING:
+				if _mouse_captured:
+					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+					_mouse_captured = false
 
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
-				if not _mouse_captured:
+				if _local_game_state == Globals.GameState.PLAYING and not _mouse_captured:
 					Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 					_mouse_captured = true
 				_keys[MOUSE_BUTTON_LEFT] = true
