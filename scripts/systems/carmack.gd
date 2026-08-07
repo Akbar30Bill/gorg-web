@@ -15,8 +15,9 @@ static func decompress(source: PackedByteArray) -> PackedByteArray:
 	var length := src_words.size()
 	var src_pos := 0
 	var dest: Array[int] = []
+	var max_output := 65536
 
-	while src_pos < length:
+	while src_pos < length and dest.size() < max_output:
 		var ch := src_words[src_pos]
 		src_pos += 1
 		var chhigh := ch >> 8
@@ -34,6 +35,8 @@ static func decompress(source: PackedByteArray) -> PackedByteArray:
 				var offset := src_words[src_pos]
 				src_pos += 1
 				for _c in count:
+					if dest.size() >= max_output:
+						break
 					if offset > dest.size():
 						break
 					dest.append(dest[dest.size() - offset])
@@ -50,6 +53,8 @@ static func decompress(source: PackedByteArray) -> PackedByteArray:
 				var offset := src_words[src_pos]
 				src_pos += 1
 				for _c in count:
+					if dest.size() >= max_output:
+						break
 					if offset >= dest.size():
 						dest.append(0)
 					else:

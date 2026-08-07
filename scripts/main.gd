@@ -53,10 +53,11 @@ func _load_assets() -> void:
 		var num_walls := _vswap.sprite_start
 		for i in num_walls:
 			Globals.wall_textures.append(_vswap.load_wall_texture(i))
-		for i in range(_vswap.sprite_start, mini(_vswap.sprite_start + 50, _vswap.offsets.size())):
-			var img := _vswap.load_sprite(i - _vswap.sprite_start)
-			if img:
-				Globals.sprite_images.append(img)
+		# TODO: sprite loading needs safer parsing for real Wolf3D data
+		# for i in range(_vswap.sprite_start, mini(_vswap.sprite_start + 50, _vswap.offsets.size())):
+		# 	var img := _vswap.load_sprite(i - _vswap.sprite_start)
+		# 	if img:
+		# 		Globals.sprite_images.append(img)
 	if Globals.wall_textures.is_empty():
 		_generate_placeholder_textures()
 

@@ -38,7 +38,6 @@ class VSwapFile:
 			return _placeholder_sprite()
 
 		var max_rows := 128
-		var sprite_h := max_rows
 		var row_min := max_rows
 		var row_max := 0
 
@@ -47,25 +46,41 @@ class VSwapFile:
 
 		var col_ofs_base := pic_offset + 4
 		var col_offsets: Array[int] = []
+		var col_data_bounds: Array[int] = []
 		for c in sprite_w:
 			if col_ofs_base + c * 2 + 2 > raw.size():
 				break
 			col_offsets.append(raw.decode_u16(col_ofs_base + c * 2))
 
-		for c in sprite_w:
+		for c in col_offsets.size():
+			var start := pic_offset + col_offsets[c]
+			if c + 1 < col_offsets.size():
+				var next_start := pic_offset + col_offsets[c + 1]
+				col_data_bounds.append(next_start)
+			else:
+				col_data_bounds.append(raw.size())
+
+		for c in col_offsets.size():
 			var col_ofs := pic_offset + col_offsets[c]
 			if col_ofs < 0 or col_ofs + 4 > raw.size():
 				continue
+			var col_end := col_data_bounds[c]
+			var max_iter := 256
 
-			while col_ofs + 4 <= raw.size():
+			while col_ofs + 4 <= raw.size() and max_iter > 0:
+				max_iter -= 1
 				var top := raw.decode_u16(col_ofs)
 				var bottom := raw.decode_u16(col_ofs + 2)
 				if top == 0 and bottom == 0:
 					break
+				if bottom < top:
+					break
 				col_ofs += 4
+				if col_ofs >= col_end:
+					break
 
-				var col_data_end := col_ofs + (bottom - top + 1)
-				if col_data_end > raw.size():
+				var run_len := bottom - top + 1
+				if col_ofs + run_len > raw.size() or col_ofs + run_len > col_end:
 					break
 
 				row_min = mini(row_min, top)
@@ -75,7 +90,7 @@ class VSwapFile:
 					var px := raw[col_ofs + (r - top)]
 					pixel_map[c * max_rows + r] = px
 
-				col_ofs = col_data_end
+				col_ofs += run_len
 				if col_ofs % 2 != 0:
 					col_ofs += 1
 
