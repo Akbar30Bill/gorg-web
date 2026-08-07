@@ -331,7 +331,6 @@ static func load_gamemaps(maphead_path: String, gamemaps_path: String) -> GameMa
 
 	if header_file.get_length() >= 4:
 		var rlew_tag := header_file.get_buffer(2)
-		header_file.get_buffer(2)
 
 	while header_file.get_position() + 4 <= header_file.get_length():
 		var offset := header_file.get_32()

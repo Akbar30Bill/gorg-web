@@ -49,7 +49,7 @@ static func cast_ray(map: Array, pos: Vector2, angle: float) -> Dictionary:
 			break
 
 		var tile: int = map[map_y * Globals.MAP_WIDTH + map_x] as int
-		if tile > 0 and tile < 64:
+		if tile > 0 and tile < 90 or tile >= 90 and tile <= 105:
 			hit = true
 			break
 

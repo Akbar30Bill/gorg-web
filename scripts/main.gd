@@ -50,7 +50,7 @@ func _ready() -> void:
 func _load_assets() -> void:
 	_vswap = WADParser.load_vswap("res://assets/wolf3d/VSWAP.WL6")
 	if _vswap:
-		var num_walls := mini(_vswap.sprite_start, Globals.NUM_WALL_TEXTURES)
+		var num_walls := _vswap.sprite_start
 		for i in num_walls:
 			Globals.wall_textures.append(_vswap.load_wall_texture(i))
 		for i in range(_vswap.sprite_start, mini(_vswap.sprite_start + 50, _vswap.offsets.size())):
@@ -370,6 +370,8 @@ func _check_pickups() -> void:
 		var p_result := _pickups.try_pickup(tile)
 		if p_result["collected"]:
 			Globals.map_data[py * Globals.MAP_WIDTH + px] = 0
+			var lm := _level.get_map()
+			lm[py * Globals.MAP_WIDTH + px] = 0
 			_sound.play_pickup()
 
 func _check_elevator() -> void:
@@ -426,13 +428,15 @@ func _render_game_frame() -> void:
 	var screen := Globals.screen_image
 	screen.fill(Color(0.18, 0.18, 0.22))
 
+	var level_map := _level.get_map()
+
 	FloorCeilingRenderer.render_floor_ceiling(
-		screen, Globals.map_data, Globals.z_buffer,
+		screen, level_map, Globals.z_buffer,
 		Globals.player_pos, Globals.player_angle
 	)
 
 	WallRenderer.render_walls(
-		screen, Globals.z_buffer, Globals.map_data,
+		screen, Globals.z_buffer, level_map,
 		Globals.wall_textures, Globals.player_pos, Globals.player_angle
 	)
 

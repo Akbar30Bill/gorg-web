@@ -44,11 +44,14 @@ func get_tile(x: int, y: int) -> int:
 		return 1
 	return _map[y * Globals.MAP_WIDTH + x] & 0xFF
 
+func get_map() -> Array:
+	return _map
+
 func is_wall(x: int, y: int) -> bool:
 	var tile: int = get_tile(x, y)
 	if tile == 0:
 		return false
-	if tile >= 1 and tile <= 67:
+	if tile >= 1 and tile < DOOR_TILE_START:
 		return true
 	if tile >= DOOR_TILE_START and tile <= DOOR_TILE_END:
 		return true
