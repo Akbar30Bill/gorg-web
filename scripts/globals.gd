@@ -13,6 +13,7 @@ const ROTATION_SPEED := 120.0
 const MOUSE_SENSITIVITY := 0.2
 
 enum GameState { TITLE, PLAYING, DEAD, INTERMISSION, VICTORY }
+enum WeaponType { KNIFE, PISTOL, MACHINE_GUN, CHAIN_GUN }
 
 var game_state: GameState = GameState.TITLE
 var player_pos: Vector2 = Vector2.ZERO
