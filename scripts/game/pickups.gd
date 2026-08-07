@@ -40,8 +40,8 @@ func try_pickup(tile_value: int) -> Dictionary:
 	return { "collected": false }
 
 func _collect(pickup_type: PickupType) -> Dictionary:
-	var def := PICKUP_DEFS.get(pickup_type, {})
-	var amount := def.get("amount", 0)
+	var def: Dictionary = PICKUP_DEFS.get(pickup_type, {})
+	var amount: int = def.get("amount", 0)
 
 	match pickup_type:
 		PickupType.HEALTH:

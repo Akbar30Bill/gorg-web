@@ -32,3 +32,15 @@ window/stretch/aspect="keep"
 
 renderer/rendering_method="gl_compatibility"
 textures/canvas_textures/default_texture_filter=0
+
+[debug]
+
+gdscript/warnings/untyped_declaration=0
+gdscript/warnings/inferred_declaration=0
+gdscript/warnings/unsafe_method_access=0
+gdscript/warnings/unsafe_property_access=0
+gdscript/warnings/unsafe_call_argument=0
+
+[gdscript]
+
+warnings/treat_warnings_as_errors=false

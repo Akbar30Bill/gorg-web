@@ -68,7 +68,7 @@ func spawn(enemy_type: EnemyType, world_x: float, world_y: float, ambush: bool =
 	e.type = enemy_type
 	e.world_pos = Vector2(world_x, world_y)
 	e.angle = 0.0
-	var def := ENEMY_DEFS.get(enemy_type, ENEMY_DEFS[EnemyType.GUARD])
+	var def: Dictionary = ENEMY_DEFS.get(enemy_type, ENEMY_DEFS[EnemyType.GUARD])
 	e.max_health = def["max_health"]
 	e.health = e.max_health
 	e.speed = def["speed"]
@@ -160,7 +160,7 @@ func get_enemies_for_rendering() -> Array[Dictionary]:
 	return result
 
 func _can_see_player(e: EnemyData, _level: LevelManager) -> bool:
-	var dist := e.world_pos.distance_to(Globals.player_pos)
+	var dist: float = e.world_pos.distance_to(Globals.player_pos)
 	if dist > e.sight_range:
 		return false
 	return true  # TODO: proper LOS check with raycast

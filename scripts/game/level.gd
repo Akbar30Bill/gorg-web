@@ -45,7 +45,7 @@ func get_tile(x: int, y: int) -> int:
 	return _map[y * Globals.MAP_WIDTH + x] & 0xFF
 
 func is_wall(x: int, y: int) -> bool:
-	var tile := get_tile(x, y)
+	var tile: int = get_tile(x, y)
 	if tile == 0:
 		return false
 	if tile >= 1 and tile <= 67:
@@ -55,7 +55,7 @@ func is_wall(x: int, y: int) -> bool:
 	return false
 
 func is_door(x: int, y: int) -> bool:
-	var tile := get_tile(x, y)
+	var tile: int = get_tile(x, y)
 	return tile >= DOOR_TILE_START and tile <= DOOR_TILE_END
 
 func get_door_at(x: int, y: int) -> DoorData:
@@ -146,8 +146,8 @@ func push_wall(x: int, y: int, dir: int) -> bool:
 func _scan_map_for_features() -> void:
 	for y in Globals.MAP_HEIGHT:
 		for x in Globals.MAP_WIDTH:
-			var val := _map[y * Globals.MAP_WIDTH + x]
-			var tile := val & 0xFF
+			var val: int = _map[y * Globals.MAP_WIDTH + x]
+			var tile: int = val & 0xFF
 
 			if tile >= DOOR_TILE_START and tile <= DOOR_TILE_END:
 				var d := DoorData.new()

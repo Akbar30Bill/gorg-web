@@ -43,7 +43,7 @@ static func render_floor_ceiling(screen: Image, map: Array, z_buffer: Array, pla
 					screen.set_pixel(x, y, floor_color)
 				continue
 
-			var tile := map[map_y * Globals.MAP_WIDTH + map_x] as int
+			var tile: int = map[map_y * Globals.MAP_WIDTH + map_x] as int
 			if tile == 0:
 				if is_ceiling:
 					screen.set_pixel(x, y, ceiling_color)

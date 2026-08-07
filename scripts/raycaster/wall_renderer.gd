@@ -36,7 +36,7 @@ static func render_walls(
 		var draw_start := (Globals.SCREEN_HEIGHT - line_height) / 2
 		var draw_end := draw_start + line_height
 
-		var tile := result["tile"] as int
+		var tile: int = result["tile"] as int
 		var wall_x := result["wall_x"] as float
 		var tex_x := int(wall_x * Globals.TILE_SIZE)
 

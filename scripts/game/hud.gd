@@ -106,15 +106,15 @@ const CHAR_MAP := {
 }
 
 static func _draw_text(screen: Image, text: String, x: int, y: int, color: Color) -> void:
-	var cx := x
+	var cx: int = x
 	for ch in text.to_upper():
-		var glyph := CHAR_MAP.get(ch, [0])
+		var glyph: Array = CHAR_MAP.get(ch, [0])
 		for row in glyph.size():
-			var bits := glyph[row]
+			var bits: int = glyph[row]
 			for col in 5:
 				if bits & (1 << (4 - col)):
-					var px := cx + col
-					var py := y + row
+					var px: int = cx + col
+					var py: int = y + row
 					if px >= 0 and px < Globals.SCREEN_WIDTH and py >= 0 and py < Globals.SCREEN_HEIGHT:
 						screen.set_pixel(px, py, color)
 		cx += 6

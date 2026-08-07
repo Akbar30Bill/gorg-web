@@ -211,14 +211,14 @@ class GameMapsFile:
 		var pos := 2
 		var out_pos := 0
 		while pos + 1 < data.size():
-			var val := data.decode_u16(pos)
+			var val: int = data.decode_u16(pos)
 			pos += 2
 			if val == RLEW_TAG:
 				if pos + 2 > data.size():
 					break
-				var count := data.decode_u16(pos)
+				var count: int = data.decode_u16(pos)
 				pos += 2
-				var tile := data.decode_u16(pos)
+				var tile: int = data.decode_u16(pos)
 				pos += 2
 				for _c in count:
 					if out_pos < map.size():

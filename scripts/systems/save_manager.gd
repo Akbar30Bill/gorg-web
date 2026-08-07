@@ -48,7 +48,7 @@ static func load_game(slot: int) -> bool:
 	if err != OK:
 		return false
 
-	var data := json_obj.get_data()
+	var data: Variant = json_obj.get_data()
 	if not data is Dictionary:
 		return false
 
@@ -83,7 +83,7 @@ static func get_slot_info(slot: int) -> Dictionary:
 	if json_obj.parse(json) != OK:
 		return { "empty": true }
 
-	var data := json_obj.get_data()
+	var data: Variant = json_obj.get_data()
 	if not data is Dictionary:
 		return { "empty": true }
 

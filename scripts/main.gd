@@ -120,11 +120,11 @@ func _spawn_enemies_from_map() -> void:
 	}
 	for y in Globals.MAP_HEIGHT:
 		for x in Globals.MAP_WIDTH:
-			var val := Globals.map_data[y * Globals.MAP_WIDTH + x]
-			var tile := val & 0xFF
-			var et := actor_map.get(tile, -1)
+			var val: int = Globals.map_data[y * Globals.MAP_WIDTH + x]
+			var tile: int = val & 0xFF
+			var et: int = actor_map.get(tile, -1)
 			if et >= 0:
-				var ambush := (val & 0x8000) != 0
+				var ambush: bool = (val & 0x8000) != 0
 				_enemies.spawn(et, (x + 0.5) * Globals.TILE_SIZE, (y + 0.5) * Globals.TILE_SIZE, ambush)
 
 func _process(delta: float) -> void:
@@ -148,7 +148,7 @@ func _process_title(delta: float) -> void:
 	if _just_pressed.get(KEY_DOWN) or _just_pressed.get(KEY_S):
 		_menu.move_down()
 	if _just_pressed.get(KEY_ENTER) or _just_pressed.get(KEY_SPACE):
-		var result := _menu.confirm_action()
+		var result: Dictionary = _menu.confirm_action()
 		match result.get("action", ""):
 			"new_game":
 				start_new_game()
@@ -294,7 +294,7 @@ func _strafe_player(speed: float) -> void:
 		Globals.player_pos.y = ny
 
 func _try_pushwall(tx: int, ty: int, pushing_right: bool) -> void:
-	var tile := _level.get_tile(tx, ty)
+	var tile: int = _level.get_tile(tx, ty)
 	if tile < 64 or tile > 67:
 		return
 	var dir := tile - 64
@@ -329,12 +329,12 @@ func _try_open_door() -> void:
 				break
 
 func _try_fire() -> void:
-	var result := _weapons.try_fire()
+	var result: Dictionary = _weapons.try_fire()
 	if not result["fired"]:
 		return
 
 	if result.get("hit_radius", 0) > 0:
-		var hit := ProjectileSystem.check_melee_hit(
+		var hit: EnemySystem.EnemyData = ProjectileSystem.check_melee_hit(
 			Globals.player_pos, Globals.player_angle,
 			_enemies.get_enemies(), result["hit_radius"], result["damage"]
 		)
@@ -345,11 +345,11 @@ func _try_fire() -> void:
 				_sound.play_enemy_hurt()
 	else:
 		_sound.play_pistol()
-		var hr := ProjectileSystem.fire_hitscan(Globals.player_pos, Globals.player_angle, 1000.0, _level)
+		var hr: Dictionary = ProjectileSystem.fire_hitscan(Globals.player_pos, Globals.player_angle, 1000.0, _level)
 		for e in _enemies.get_enemies():
 			if not e.alive:
 				continue
-			var to_e := e.world_pos - Globals.player_pos
+			var to_e: Vector2 = e.world_pos - Globals.player_pos
 			if to_e.length() > 1000.0:
 				continue
 			var ad := wrapf(atan2(to_e.y, to_e.x) - Globals.player_angle, -PI, PI)
@@ -363,19 +363,19 @@ func _try_fire() -> void:
 					break
 
 func _check_pickups() -> void:
-	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
-	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
-	var tile := _level.get_tile(px, py)
+	var px: int = int(Globals.player_pos.x / Globals.TILE_SIZE)
+	var py: int = int(Globals.player_pos.y / Globals.TILE_SIZE)
+	var tile: int = _level.get_tile(px, py)
 	if tile >= 126 and tile <= 137:
-		var p_result := _pickups.try_pickup(tile)
+		var p_result: Dictionary = _pickups.try_pickup(tile)
 		if p_result["collected"]:
 			Globals.map_data[py * Globals.MAP_WIDTH + px] = 0
 			_sound.play_pickup()
 
 func _check_elevator() -> void:
-	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
-	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
-	var tile := _level.get_tile(px, py)
+	var px: int = int(Globals.player_pos.x / Globals.TILE_SIZE)
+	var py: int = int(Globals.player_pos.y / Globals.TILE_SIZE)
+	var tile: int = _level.get_tile(px, py)
 	if tile == 0x15:
 		var alive_count := 0
 		for e in _enemies.get_enemies():

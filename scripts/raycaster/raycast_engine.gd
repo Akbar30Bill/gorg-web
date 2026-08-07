@@ -48,7 +48,7 @@ static func cast_ray(map: Array, pos: Vector2, angle: float) -> Dictionary:
 		if map_x < 0 or map_x >= Globals.MAP_WIDTH or map_y < 0 or map_y >= Globals.MAP_HEIGHT:
 			break
 
-		var tile := map[map_y * Globals.MAP_WIDTH + map_x] as int
+		var tile: int = map[map_y * Globals.MAP_WIDTH + map_x] as int
 		if tile > 0 and tile < 64:
 			hit = true
 			break
@@ -68,12 +68,12 @@ static func cast_ray(map: Array, pos: Vector2, angle: float) -> Dictionary:
 
 	wall_x -= floor(wall_x)
 
-	var tile := map[map_y * Globals.MAP_WIDTH + map_x] as int
+	var tile2: int = map[map_y * Globals.MAP_WIDTH + map_x] as int
 
 	return {
 		"hit": true,
 		"distance": perp_dist,
-		"tile": tile,
+		"tile": tile2,
 		"side": side,
 		"wall_x": wall_x,
 		"map_x": map_x,

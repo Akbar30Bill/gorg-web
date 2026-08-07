@@ -87,9 +87,9 @@ func process_audio() -> void:
 			_current_phase = 0.0
 
 		if not _current_sound.is_empty():
-			var freq := _current_sound.get("freq", 440.0) as float
-			var dur := _current_sound.get("dur", 0.1) as float
-			var wave := _current_sound.get("wave", 0) as int
+			var freq: float = _current_sound.get("freq", 440.0)
+			var dur: float = _current_sound.get("dur", 0.1)
+			var wave: int = _current_sound.get("wave", 0)
 
 			_current_phase += 1.0 / SAMPLE_RATE
 			var t := _current_phase / dur

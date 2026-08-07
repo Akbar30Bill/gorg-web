@@ -28,17 +28,17 @@ static func fire_hitscan(from: Vector2, angle: float, range: float, _level: Leve
 		"position": check_pos,
 	}
 
-static func check_melee_hit(player_pos: Vector2, player_angle: float, enemies: Array, range: float, damage: int):
+static func check_melee_hit(player_pos: Vector2, player_angle: float, enemies: Array, range: float, damage: int) -> EnemySystem.EnemyData:
 	var dir := Vector2(cos(player_angle), sin(player_angle))
 	for e in enemies:
 		if not e.alive:
 			continue
-		var to_enemy := e.world_pos - player_pos
-		var dist := to_enemy.length()
+		var to_enemy: Vector2 = e.world_pos - player_pos
+		var dist: float = to_enemy.length()
 		if dist > range:
 			continue
 		to_enemy = to_enemy.normalized()
-		var dot := to_enemy.dot(dir)
+		var dot: float = to_enemy.dot(dir)
 		if dot > 0.5:
 			return e
 	return null
