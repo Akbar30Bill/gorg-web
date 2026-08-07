@@ -29,7 +29,7 @@ var current_episode: int = 1
 
 var wall_textures: Array[Image] = []
 var sprite_images: Array[Image] = []
-var map_data: Array[int] = []
+var map_data: Array = []
 var door_map: Array = []
 var actor_map: Array = []
 
