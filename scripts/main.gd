@@ -45,7 +45,7 @@ func _ready() -> void:
 
 	_sound.setup()
 	_load_assets()
-	_menu.enter_state(MenuSystem.MenuState.TITLE)
+	_menu.enter_state(MenuSystem.MenuState.MAIN)
 
 func _load_assets() -> void:
 	_vswap = WADParser.load_vswap("res://assets/wolf3d/VSWAP.WL6")
@@ -81,7 +81,7 @@ func start_new_game() -> void:
 	Globals.player_lives = 3
 	Globals.player_score = 0
 	Globals.player_keys = 0
-	Globals.player_weapon = WeaponSystem.WeaponType.PISTOL
+	Globals.player_weapon = Globals.WeaponType.PISTOL
 	_load_level()
 	_local_game_state = Globals.GameState.PLAYING
 	Globals.game_state = Globals.GameState.PLAYING
@@ -148,7 +148,7 @@ func _process_title(delta: float) -> void:
 	if _just_pressed.get(KEY_DOWN) or _just_pressed.get(KEY_S):
 		_menu.move_down()
 	if _just_pressed.get(KEY_ENTER) or _just_pressed.get(KEY_SPACE):
-		var result: Dictionary = _menu.confirm_action()
+		var result := _menu.confirm_action()
 		match result.get("action", ""):
 			"new_game":
 				start_new_game()
@@ -235,13 +235,13 @@ func _handle_game_input(delta: float) -> void:
 	if _just_pressed.get(KEY_SPACE) or _just_pressed.get(KEY_E):
 		_try_open_door()
 	if _just_pressed.get(KEY_1):
-		_weapons.switch_to(WeaponSystem.WeaponType.KNIFE)
+		_weapons.switch_to(Globals.WeaponType.KNIFE)
 	if _just_pressed.get(KEY_2):
-		_weapons.switch_to(WeaponSystem.WeaponType.PISTOL)
+		_weapons.switch_to(Globals.WeaponType.PISTOL)
 	if _just_pressed.get(KEY_3):
-		_weapons.switch_to(WeaponSystem.WeaponType.MACHINE_GUN)
+		_weapons.switch_to(Globals.WeaponType.MACHINE_GUN)
 	if _just_pressed.get(KEY_4):
-		_weapons.switch_to(WeaponSystem.WeaponType.CHAIN_GUN)
+		_weapons.switch_to(Globals.WeaponType.CHAIN_GUN)
 
 	if _keys.get(KEY_CTRL) or _keys.get(MOUSE_BUTTON_LEFT):
 		_weapons.start_fire()
@@ -294,7 +294,7 @@ func _strafe_player(speed: float) -> void:
 		Globals.player_pos.y = ny
 
 func _try_pushwall(tx: int, ty: int, pushing_right: bool) -> void:
-	var tile: int = _level.get_tile(tx, ty)
+	var tile := _level.get_tile(tx, ty)
 	if tile < 64 or tile > 67:
 		return
 	var dir := tile - 64
@@ -329,12 +329,12 @@ func _try_open_door() -> void:
 				break
 
 func _try_fire() -> void:
-	var result: Dictionary = _weapons.try_fire()
+	var result := _weapons.try_fire()
 	if not result["fired"]:
 		return
 
 	if result.get("hit_radius", 0) > 0:
-		var hit: EnemySystem.EnemyData = ProjectileSystem.check_melee_hit(
+		var hit: Variant = ProjectileSystem.check_melee_hit(
 			Globals.player_pos, Globals.player_angle,
 			_enemies.get_enemies(), result["hit_radius"], result["damage"]
 		)
@@ -345,11 +345,11 @@ func _try_fire() -> void:
 				_sound.play_enemy_hurt()
 	else:
 		_sound.play_pistol()
-		var hr: Dictionary = ProjectileSystem.fire_hitscan(Globals.player_pos, Globals.player_angle, 1000.0, _level)
+		var hr := ProjectileSystem.fire_hitscan(Globals.player_pos, Globals.player_angle, 1000.0, _level)
 		for e in _enemies.get_enemies():
 			if not e.alive:
 				continue
-			var to_e: Vector2 = e.world_pos - Globals.player_pos
+			var to_e := e.world_pos - Globals.player_pos
 			if to_e.length() > 1000.0:
 				continue
 			var ad := wrapf(atan2(to_e.y, to_e.x) - Globals.player_angle, -PI, PI)
@@ -363,19 +363,19 @@ func _try_fire() -> void:
 					break
 
 func _check_pickups() -> void:
-	var px: int = int(Globals.player_pos.x / Globals.TILE_SIZE)
-	var py: int = int(Globals.player_pos.y / Globals.TILE_SIZE)
-	var tile: int = _level.get_tile(px, py)
+	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
+	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
+	var tile := _level.get_tile(px, py)
 	if tile >= 126 and tile <= 137:
-		var p_result: Dictionary = _pickups.try_pickup(tile)
+		var p_result := _pickups.try_pickup(tile)
 		if p_result["collected"]:
 			Globals.map_data[py * Globals.MAP_WIDTH + px] = 0
 			_sound.play_pickup()
 
 func _check_elevator() -> void:
-	var px: int = int(Globals.player_pos.x / Globals.TILE_SIZE)
-	var py: int = int(Globals.player_pos.y / Globals.TILE_SIZE)
-	var tile: int = _level.get_tile(px, py)
+	var px := int(Globals.player_pos.x / Globals.TILE_SIZE)
+	var py := int(Globals.player_pos.y / Globals.TILE_SIZE)
+	var tile := _level.get_tile(px, py)
 	if tile == 0x15:
 		var alive_count := 0
 		for e in _enemies.get_enemies():

@@ -55,9 +55,9 @@ func _collect(pickup_type: PickupType) -> Dictionary:
 		PickupType.CROSS, PickupType.CHALICE, PickupType.CHEST, PickupType.CROWN, PickupType.GIB_POINTS:
 			Globals.player_score += amount
 		PickupType.MACHINE_GUN:
-			Globals.player_weapon = WeaponSystem.WeaponType.MACHINE_GUN
+			Globals.player_weapon = Globals.WeaponType.MACHINE_GUN
 		PickupType.CHAIN_GUN:
-			Globals.player_weapon = WeaponSystem.WeaponType.CHAIN_GUN
+			Globals.player_weapon = Globals.WeaponType.CHAIN_GUN
 		PickupType.ONE_UP:
 			Globals.player_lives += 1
 
