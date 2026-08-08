@@ -43,6 +43,10 @@ func load_from_gamemaps(result: Dictionary) -> void:
 	_plane0 = result.get("plane0", []).duplicate()
 	_plane1 = result.get("plane1", []).duplicate()
 	_plane2 = result.get("plane2", []).duplicate()
+	if _plane0.is_empty() or _plane0.size() < Globals.MAP_WIDTH * Globals.MAP_HEIGHT:
+		_plane0 = WADParser.GameMapsFile.new()._build_default_map()
+	if _plane0.is_empty():
+		_plane0 = WADParser.GameMapsFile.new()._build_default_map()
 	_map = _plane0
 	_doors.clear()
 	_pushwalls.clear()

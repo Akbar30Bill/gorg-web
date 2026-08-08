@@ -29,32 +29,32 @@ const ENEMY_DEFS: Dictionary = {
 	EnemyType.GUARD: {
 		"max_health": 25, "speed": 80.0, "damage": 8.0,
 		"attack_range": 200.0, "sight_range": 350.0,
-		"sprite_base": 0
+		"sprite_base": 42
 	},
 	EnemyType.SS: {
 		"max_health": 50, "speed": 110.0, "damage": 10.0,
 		"attack_range": 220.0, "sight_range": 400.0,
-		"sprite_base": 1
+		"sprite_base": 50
 	},
 	EnemyType.DOG: {
 		"max_health": 15, "speed": 160.0, "damage": 12.0,
 		"attack_range": 30.0, "sight_range": 300.0,
-		"sprite_base": 2
+		"sprite_base": 80
 	},
 	EnemyType.MUTANT: {
 		"max_health": 55, "speed": 70.0, "damage": 15.0,
 		"attack_range": 100.0, "sight_range": 250.0,
-		"sprite_base": 4
+		"sprite_base": 60
 	},
 	EnemyType.OFFICER: {
 		"max_health": 50, "speed": 100.0, "damage": 10.0,
 		"attack_range": 250.0, "sight_range": 380.0,
-		"sprite_base": 3
+		"sprite_base": 70
 	},
 	EnemyType.HANS: {
 		"max_health": 200, "speed": 90.0, "damage": 20.0,
 		"attack_range": 300.0, "sight_range": 500.0,
-		"sprite_base": 5
+		"sprite_base": 100
 	},
 }
 

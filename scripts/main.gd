@@ -485,7 +485,7 @@ func _render_game_frame() -> void:
 
 	_sprite_renderer.clear()
 	for e: EnemySystem.EnemyData in _enemies.get_enemies():
-		if e.alive and e.sprite_index < Globals.sprite_images.size():
+		if e.alive and e.sprite_index >= 0 and e.sprite_index < Globals.sprite_images.size():
 			_sprite_renderer.add_sprite(
 				Globals.sprite_images[e.sprite_index],
 				e.world_pos.x, e.world_pos.y
