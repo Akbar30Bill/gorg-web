@@ -18,6 +18,8 @@ var _just_pressed: Dictionary = {}
 var _local_game_state: int = Globals.GameState.TITLE
 var _enemy_attack_timer: float = 0.0
 var _death_timer: float = 0.0
+var _weapon_renderer: WeaponRenderer = null
+var _weapon_sound_timer: float = 0.0
 
 func _ready() -> void:
 	Globals.screen_image = Image.create(Globals.SCREEN_WIDTH, Globals.SCREEN_HEIGHT, false, Image.FORMAT_RGBA8)
@@ -45,6 +47,7 @@ func _ready() -> void:
 
 	_sound.setup()
 	_load_assets()
+	_weapon_renderer = WeaponRenderer.new()
 	_menu.enter_state(MenuSystem.MenuState.MAIN)
 
 func _load_assets() -> void:
@@ -65,6 +68,12 @@ func _load_assets() -> void:
 				Globals.face_sprites.append(img)
 	if Globals.wall_textures.is_empty():
 		_generate_placeholder_textures()
+
+	var total_sprites: int = Globals.sprite_images.size()
+	var weapon_count: int = mini(25, total_sprites)
+	if weapon_count > 0:
+		for i: int in range(total_sprites - weapon_count, total_sprites):
+			Globals.weapon_sprites.append(Globals.sprite_images[i])
 
 	_gamemaps = WADParser.load_gamemaps("res://assets/wolf3d/MAPHEAD.WL6", "res://assets/wolf3d/GAMEMAPS.WL6")
 	Globals.wad_loaded = _vswap != null and _gamemaps != null
@@ -192,8 +201,10 @@ func _process_playing(delta: float) -> void:
 	_level.update_doors(delta)
 	_enemies.update_all(delta, _level)
 
-	if _weapons.is_firing():
+	if _weapons._is_firing:
 		_try_fire()
+
+	_weapon_renderer.update(delta, Globals.player_is_moving)
 
 	_enemy_attack_check(delta)
 	_check_pickups()
@@ -227,21 +238,35 @@ func _process_dead(delta: float) -> void:
 		HUD._old_draw_text(screen, hint, (Globals.SCREEN_WIDTH - len(hint) * 6) / 2, 120, Color(0.8, 0.6, 0.6))
 	Globals.screen_texture.update(screen)
 
-func _process_weapon_sound(_delta: float) -> void:
-	pass
+func _process_weapon_sound(delta: float) -> void:
+	if not _weapons.is_firing():
+		return
+	_weapon_sound_timer -= delta
+	if _weapon_sound_timer > 0.0:
+		return
+	match Globals.player_weapon:
+		Globals.WeaponType.MACHINE_GUN, Globals.WeaponType.CHAIN_GUN:
+			_sound.play_machine_gun()
+			_weapon_sound_timer = 0.06
 
 func _handle_game_input(delta: float) -> void:
 	var move_speed: float = Globals.PLAYER_SPEED * delta
 	var rot_speed: float = deg_to_rad(Globals.ROTATION_SPEED * delta)
 
+	Globals.player_is_moving = false
+
 	if _keys.get(KEY_W) or _keys.get(KEY_UP):
 		_move_player(move_speed)
+		Globals.player_is_moving = true
 	if _keys.get(KEY_S) or _keys.get(KEY_DOWN):
 		_move_player(-move_speed)
+		Globals.player_is_moving = true
 	if _keys.get(KEY_A):
 		_strafe_player(-move_speed)
+		Globals.player_is_moving = true
 	if _keys.get(KEY_D):
 		_strafe_player(move_speed)
+		Globals.player_is_moving = true
 	if _keys.get(KEY_LEFT):
 		Globals.player_angle -= rot_speed
 	if _keys.get(KEY_RIGHT):
@@ -342,6 +367,8 @@ func _try_fire() -> void:
 	if not result["fired"]:
 		return
 
+	_weapon_renderer.start_fire_animation()
+
 	if result.get("hit_radius", 0) > 0:
 		var hit: Variant = ProjectileSystem.check_melee_hit(
 			Globals.player_pos, Globals.player_angle,
@@ -353,7 +380,11 @@ func _try_fire() -> void:
 			else:
 				_sound.play_enemy_hurt()
 	else:
-		_sound.play_pistol()
+		match Globals.player_weapon:
+			Globals.WeaponType.PISTOL:
+				_sound.play_pistol()
+			Globals.WeaponType.MACHINE_GUN, Globals.WeaponType.CHAIN_GUN:
+				_sound.play_machine_gun()
 		var hr: Dictionary = ProjectileSystem.fire_hitscan(Globals.player_pos, Globals.player_angle, 1000.0, _level)
 		for e: EnemySystem.EnemyData in _enemies.get_enemies():
 			if not e.alive:
@@ -461,6 +492,8 @@ func _render_game_frame() -> void:
 			)
 
 	_sprite_renderer.render(screen, Globals.z_buffer, Globals.player_pos, Globals.player_angle)
+
+	_weapon_renderer.render(screen)
 
 	HUD.render(screen)
 	Globals.screen_texture.update(screen)

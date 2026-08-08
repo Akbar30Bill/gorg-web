@@ -53,14 +53,16 @@ func get_tile(x: int, y: int) -> int:
 		return 1
 	if _plane0.is_empty():
 		return 0
-	return _plane0[y * Globals.MAP_WIDTH + x] & 0xFF
+	var raw_val = _plane0[y * Globals.MAP_WIDTH + x]
+	return (raw_val if raw_val != null else 0) & 0xFF
 
 func get_object_tile(x: int, y: int) -> int:
 	if x < 0 or x >= Globals.MAP_WIDTH or y < 0 or y >= Globals.MAP_HEIGHT:
 		return 0
 	if _plane1.is_empty():
 		return 0
-	return _plane1[y * Globals.MAP_WIDTH + x] & 0xFF
+	var raw_val = _plane1[y * Globals.MAP_WIDTH + x]
+	return (raw_val if raw_val != null else 0) & 0xFF
 
 func get_plane1() -> Array:
 	return _plane1
@@ -135,7 +137,7 @@ func _update_door_tile(d: DoorData) -> void:
 		_map[d.map_y * Globals.MAP_WIDTH + d.map_x] = base_tile + frame + (0 if d.vertical else 4)
 
 func push_wall(wall_x: int, wall_y: int, push_dir: int) -> bool:
-	var tile: int = _plane0[wall_y * Globals.MAP_WIDTH + wall_x]
+	var tile: int = (_plane0[wall_y * Globals.MAP_WIDTH + wall_x] if _plane0[wall_y * Globals.MAP_WIDTH + wall_x] != null else 0) as int
 	if tile < 1 or tile > WALL_TILE_END:
 		return false
 
@@ -170,7 +172,8 @@ func push_wall(wall_x: int, wall_y: int, push_dir: int) -> bool:
 func _scan_map_for_features() -> void:
 	for y: int in range(Globals.MAP_HEIGHT):
 		for x: int in range(Globals.MAP_WIDTH):
-			var val: int = _plane0[y * Globals.MAP_WIDTH + x]
+			var raw_val = _plane0[y * Globals.MAP_WIDTH + x]
+			var val: int = raw_val if raw_val != null else 0
 			var tile: int = val & 0xFF
 
 			if tile >= DOOR_TILE_START and tile <= DOOR_TILE_END:

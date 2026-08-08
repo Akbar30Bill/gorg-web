@@ -35,6 +35,8 @@ var map_data: Array = []
 var door_map: Array = []
 var actor_map: Array = []
 
+var weapon_sprites: Array[Image] = []
+var player_is_moving: bool = false
 var face_state: int = 0
 var face_frame: int = 0
 var face_timer: float = 0.0
