@@ -20,8 +20,8 @@ func enter_state(new_state: MenuState) -> void:
 			_menu_options = ["New Game", "Load Game", "Controls", "Quit"]
 		MenuState.LOAD_GAME:
 			_menu_options = []
-			for i in 6:
-				var info := SaveManager.get_slot_info(i)
+			for i: int in range(6):
+				var info: Dictionary = SaveManager.get_slot_info(i)
 				if info.get("empty", true):
 					_menu_options.append("Slot " + str(i + 1) + " - Empty")
 				else:
@@ -101,49 +101,49 @@ func render(screen: Image) -> void:
 			_render_menu(screen)
 
 func _render_title_screen(screen: Image) -> void:
-	var title_chars := "WOLFENSTEIN 3D"
-	var title_x := (Globals.SCREEN_WIDTH - len(title_chars) * 6) / 2 + 4
-	for i in title_chars.length():
-		var c := float(i) / title_chars.length()
-		var color := Color(1.0, 0.3 + c * 0.3, 0.3)
+	var title_chars: String = "WOLFENSTEIN 3D"
+	var title_x: int = (Globals.SCREEN_WIDTH - len(title_chars) * 6) / 2 + 4
+	for i: int in range(title_chars.length()):
+		var c: float = float(i) / title_chars.length()
+		var color: Color = Color(1.0, 0.3 + c * 0.3, 0.3)
 		HUD._draw_text(screen, title_chars[i], title_x + i * 6 - 2, 20, color)
 		HUD._draw_text(screen, title_chars[i], title_x + i * 6, 18, Color(1.0, 0.1, 0.1))
 
-	var subtitle := "A GODOT 4 REIMAGINING"
-	var sub_x := (Globals.SCREEN_WIDTH - len(subtitle) * 6) / 2
+	var subtitle: String = "A GODOT 4 REIMAGINING"
+	var sub_x: int = (Globals.SCREEN_WIDTH - len(subtitle) * 6) / 2
 	HUD._draw_text(screen, subtitle, sub_x, 40, Color(0.6, 0.6, 0.6))
 
-	var credit := "github.com/Akbar30Bill/gorg-web"
-	var cred_x := (Globals.SCREEN_WIDTH - len(credit) * 6) / 2
+	var credit: String = "github.com/Akbar30Bill/gorg-web"
+	var cred_x: int = (Globals.SCREEN_WIDTH - len(credit) * 6) / 2
 	HUD._draw_text(screen, credit, cred_x, Globals.SCREEN_HEIGHT - 20, Color(0.4, 0.4, 0.5))
 
-	var hint := "PRESS ENTER TO START"
-	var hx := (Globals.SCREEN_WIDTH - len(hint) * 6) / 2
+	var hint: String = "PRESS ENTER TO START"
+	var hx: int = (Globals.SCREEN_WIDTH - len(hint) * 6) / 2
 	HUD._draw_text(screen, hint, hx, Globals.SCREEN_HEIGHT - 34, Color(0.6, 0.6, 0.3))
 
 func _render_heading(screen: Image, text: String) -> void:
-	var x := (Globals.SCREEN_WIDTH - len(text) * 6) / 2
+	var x: int = (Globals.SCREEN_WIDTH - len(text) * 6) / 2
 	HUD._draw_text(screen, text, x, 30, Color(1.0, 0.9, 0.3))
 
 func _render_menu(screen: Image) -> void:
-	var start_y := 70
-	for i in _menu_options.size():
-		var option := _menu_options[i]
-		var x := (Globals.SCREEN_WIDTH - len(option) * 6) / 2
-		var y := start_y + i * 14
-		var color := Color(0.8, 0.8, 0.8)
+	var start_y: int = 70
+	for i: int in range(_menu_options.size()):
+		var option: String = _menu_options[i]
+		var x: int = (Globals.SCREEN_WIDTH - len(option) * 6) / 2
+		var y: int = start_y + i * 14
+		var color: Color = Color(0.8, 0.8, 0.8)
 		if i == _selected_option:
 			if _blink_visible:
 				HUD._draw_text(screen, ">", x - 10, y, Color(1.0, 0.8, 0.2))
 			color = Color(1.0, 0.9, 0.3)
 		HUD._draw_text(screen, option, x, y, color)
 
-	var hint := "ARROWS: Select  ENTER: Confirm  ESC: Back"
-	var hx := (Globals.SCREEN_WIDTH - len(hint) * 6) / 2
+	var hint: String = "ARROWS: Select  ENTER: Confirm  ESC: Back"
+	var hx: int = (Globals.SCREEN_WIDTH - len(hint) * 6) / 2
 	HUD._draw_text(screen, hint, hx, Globals.SCREEN_HEIGHT - 12, Color(0.5, 0.5, 0.5))
 
 func _render_controls(screen: Image) -> void:
-	var controls := [
+	var controls: Array[String] = [
 		"W/UP       Move Forward",
 		"S/DOWN     Move Backward",
 		"A          Strafe Left",
@@ -156,12 +156,12 @@ func _render_controls(screen: Image) -> void:
 		"ESC        Release Mouse",
 	]
 
-	var y := 50
-	for line in controls:
-		var x := 20
+	var y: int = 50
+	for line: String in controls:
+		var x: int = 20
 		HUD._draw_text(screen, line, x, y, Color(0.7, 0.7, 0.7))
 		y += 12
 
-	var hint := "Press ENTER or ESC to return"
-	var hx := (Globals.SCREEN_WIDTH - len(hint) * 6) / 2
+	var hint: String = "Press ENTER or ESC to return"
+	var hx: int = (Globals.SCREEN_WIDTH - len(hint) * 6) / 2
 	HUD._draw_text(screen, hint, hx, Globals.SCREEN_HEIGHT - 12, Color(0.5, 0.5, 0.5))

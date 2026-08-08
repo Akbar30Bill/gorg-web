@@ -2,14 +2,14 @@ extends RefCounted
 class_name ProjectileSystem
 
 static func fire_hitscan(from: Vector2, angle: float, range: float, _level: LevelManager) -> Dictionary:
-	var dir := Vector2(cos(angle), sin(angle))
-	var check_pos := from
+	var dir: Vector2 = Vector2(cos(angle), sin(angle))
+	var check_pos: Vector2 = from
 
-	var steps := int(range / 10.0)
-	for _i in steps:
+	var steps: int = int(range / 10.0)
+	for _i: int in range(steps):
 		check_pos += dir * 10.0
-		var mx := int(check_pos.x / Globals.TILE_SIZE)
-		var my := int(check_pos.y / Globals.TILE_SIZE)
+		var mx: int = int(check_pos.x / Globals.TILE_SIZE)
+		var my: int = int(check_pos.y / Globals.TILE_SIZE)
 
 		if _level.is_wall(mx, my):
 			return {
@@ -29,8 +29,8 @@ static func fire_hitscan(from: Vector2, angle: float, range: float, _level: Leve
 	}
 
 static func check_melee_hit(player_pos: Vector2, player_angle: float, enemies: Array, range: float, damage: int) -> EnemySystem.EnemyData:
-	var dir := Vector2(cos(player_angle), sin(player_angle))
-	for e in enemies:
+	var dir: Vector2 = Vector2(cos(player_angle), sin(player_angle))
+	for e: Variant in enemies:
 		if not e.alive:
 			continue
 		var to_enemy: Vector2 = e.world_pos - player_pos

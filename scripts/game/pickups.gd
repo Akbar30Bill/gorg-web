@@ -25,18 +25,21 @@ const PICKUP_DEFS: Dictionary = {
 
 func try_pickup(tile_value: int) -> Dictionary:
 	match tile_value:
-		126: return _collect(PickupType.HEALTH)
-		127: return _collect(PickupType.AMMO)
-		128: return _collect(PickupType.GOLD_KEY)
-		129: return _collect(PickupType.SILVER_KEY)
-		130: return _collect(PickupType.CROSS)
-		131: return _collect(PickupType.CHALICE)
-		132: return _collect(PickupType.CHEST)
-		133: return _collect(PickupType.CROWN)
-		134: return _collect(PickupType.MACHINE_GUN)
-		135: return _collect(PickupType.CHAIN_GUN)
-		136: return _collect(PickupType.ONE_UP)
-		137: return _collect(PickupType.GIB_POINTS)
+		47: return _collect(PickupType.HEALTH)
+		48: return _collect(PickupType.HEALTH)
+		49: return _collect(PickupType.AMMO)
+		50: return _collect(PickupType.MACHINE_GUN)
+		51: return _collect(PickupType.CHAIN_GUN)
+		43: return _collect(PickupType.GOLD_KEY)
+		44: return _collect(PickupType.GOLD_KEY)
+		45: return _collect(PickupType.SILVER_KEY)
+		46: return _collect(PickupType.SILVER_KEY)
+		52: return _collect(PickupType.CROSS)
+		53: return _collect(PickupType.CHALICE)
+		54: return _collect(PickupType.CHEST)
+		55: return _collect(PickupType.CROWN)
+		56: return _collect(PickupType.ONE_UP)
+		57: return _collect(PickupType.GIB_POINTS)
 	return { "collected": false }
 
 func _collect(pickup_type: PickupType) -> Dictionary:
@@ -63,6 +66,7 @@ func _collect(pickup_type: PickupType) -> Dictionary:
 
 	return {
 		"collected": true,
+		"type": pickup_type,
 		"message": def.get("message", ""),
 	}
 

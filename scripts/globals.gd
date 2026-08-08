@@ -29,9 +29,22 @@ var current_episode: int = 1
 
 var wall_textures: Array[Image] = []
 var sprite_images: Array[Image] = []
+var face_sprites: Array[Image] = []
+var vgagraph: RefCounted = null
 var map_data: Array = []
 var door_map: Array = []
 var actor_map: Array = []
+
+var face_state: int = 0
+var face_frame: int = 0
+var face_timer: float = 0.0
+var face_hurt_timer: float = 0.0
+var face_happy_timer: float = 0.0
+
+enum FaceState { NEUTRAL = 0, HAPPY = 1, HURT = 2, LOW = 3, GOD = 4 }
+const FACE_ANIM_SPEED := 0.15
+const FACE_HURT_DURATION := 2.0
+const FACE_HAPPY_DURATION := 1.5
 
 var screen_image: Image
 var screen_texture: ImageTexture

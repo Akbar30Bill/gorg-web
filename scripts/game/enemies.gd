@@ -88,7 +88,7 @@ func spawn(enemy_type: EnemyType, world_x: float, world_y: float, ambush: bool =
 	return e
 
 func update_all(delta: float, _level: LevelManager) -> void:
-	for e in _enemies:
+	for e: EnemyData in _enemies:
 		if not e.alive:
 			continue
 		e.attack_cooldown = maxf(0.0, e.attack_cooldown - delta)
@@ -109,13 +109,13 @@ func update_all(delta: float, _level: LevelManager) -> void:
 				if not _can_see_player(e, _level):
 					e.state = EnemyState.IDLE
 				else:
-					var dist := e.world_pos.distance_to(Globals.player_pos)
+					var dist: float = e.world_pos.distance_to(Globals.player_pos)
 					if dist < e.attack_range:
 						e.state = EnemyState.ATTACK
 					else:
 						_move_toward(e, Globals.player_pos, delta, _level)
 			EnemyState.ATTACK:
-				var dist := e.world_pos.distance_to(Globals.player_pos)
+				var dist: float = e.world_pos.distance_to(Globals.player_pos)
 				if dist > e.attack_range * 1.2:
 					e.state = EnemyState.CHASE
 				elif e.attack_cooldown <= 0:
@@ -149,7 +149,7 @@ func get_enemies() -> Array[EnemyData]:
 
 func get_enemies_for_rendering() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for e in _enemies:
+	for e: EnemyData in _enemies:
 		if not e.alive:
 			continue
 		if e.sprite_index < Globals.sprite_images.size():
@@ -166,14 +166,14 @@ func _can_see_player(e: EnemyData, _level: LevelManager) -> bool:
 	return true  # TODO: proper LOS check with raycast
 
 func _move_toward(e: EnemyData, target: Vector2, delta: float, _level: LevelManager) -> void:
-	var dir := target - e.world_pos
+	var dir: Vector2 = target - e.world_pos
 	if dir.length() < 1.0:
 		return
 	dir = dir.normalized()
 	e.angle = atan2(dir.y, dir.x)
 
-	var new_x := e.world_pos.x + dir.x * e.speed * delta
-	var new_y := e.world_pos.y + dir.y * e.speed * delta
+	var new_x: float = e.world_pos.x + dir.x * e.speed * delta
+	var new_y: float = e.world_pos.y + dir.y * e.speed * delta
 
 	if not _level.is_wall(int(new_x / Globals.TILE_SIZE), int(e.world_pos.y / Globals.TILE_SIZE)):
 		e.world_pos.x = new_x
